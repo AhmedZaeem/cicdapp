@@ -1,10 +1,12 @@
 package com.example.cicdapp
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.cicdapp.ui.screens.CartScreen
@@ -69,7 +71,12 @@ class ExampleInstrumentedTest {
                 )
             }
         }
-        composeTestRule.onNodeWithTag("add_to_cart_1").performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag("add_to_cart_1").performScrollTo().performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule.onAllNodes(hasText("Cart (1)")).fetchSemanticsNodes().isNotEmpty()
+        }
         composeTestRule.onNodeWithText("Cart (1)").assertIsDisplayed()
     }
 
