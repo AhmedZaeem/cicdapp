@@ -1,0 +1,44 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+style:
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: true
+  WildcardImport:
+    active: false
+  MagicNumber:
+    active: false
+  UnusedPrivateMember:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 150
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 8
+  TooManyFunctions:
+    active: false
+  ComplexCondition:
+    active: true
+    threshold: 4
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    excludes: ['**/test/**', '**/androidTest/**']
+  TopLevelPropertyNaming:
+    active: false
+
+
+
