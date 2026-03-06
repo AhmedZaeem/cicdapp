@@ -11,7 +11,7 @@ open in android studio and run, or `./gradlew assembleDebug` from terminal
 4 jobs:
 - code quality (lint + detekt)
 - unit tests + jacoco coverage
-- instrumented tests on emulator (api 30, 33, 34)  
+- instrumented tests on emulator (api 31, 33, 34)  
 - build debug apk
 
 ## issues i ran into
@@ -27,6 +27,7 @@ open in android studio and run, or `./gradlew assembleDebug` from terminal
 - emualtor tests were completly broken because `macos-latest` is now arm64 (apple silicon M1 runners). the x86_64 emualtor images cant run on arm hosts at all, it just says `FATAL | Avd's CPU Architecture 'x86_64' is not supported by the QEMU2 emulator on aarch64 host` and then sits there timing out for 11 minutes. switched to `macos-13` which is still intel so x86_64 works fine
 - also changed api 28 to 29 because 28 was super slow and kept timing out even on intel, added emulator-boot-timeout of 600 seconds just in case
 - then macos-13 got deprecated too lol. github removed it entirely, gives `configuration 'macos-13-us-default' is not supported` error. so had to go back to `macos-latest` but this time use `arm64-v8a` arch instead of x86_64 since all macos runners are apple silicon now. also removed the Nexus 6 profile and dropped api 29 cuz theres no arm64 system image for it, swapped in api 34
+- STILL didnt work. emulator kept saying device not found and timing out. turns out `google_apis` target doesnt have arm64 system images for most api lvls. changed target to `default` which actually has arm64 images. also added force-avd-creation, disable-animations, explicit emulator-options with -no-snapshot-save and swiftshader_indirect gpu, and bumped boot timeout to 900s. switched api 30 to 31 too cuz 30 default arm64 image is flakey
 
 ## tests
 

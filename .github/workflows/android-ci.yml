@@ -89,7 +89,7 @@ jobs:
 
     strategy:
       matrix:
-        api-level: [30, 33, 34]
+        api-level: [31, 33, 34]
 
     steps:
       - uses: actions/checkout@v4
@@ -103,13 +103,21 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules 2>/dev/null || true
+          sudo chmod 0666 /dev/kvm 2>/dev/null || true
+
       - name: Run instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: google_apis
+          target: default
           arch: arm64-v8a
-          emulator-boot-timeout: 600
+          force-avd-creation: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-boot-timeout: 900
+          disable-animations: true
           script: ./gradlew connectedDebugAndroidTest
 
       - name: Upload test results
