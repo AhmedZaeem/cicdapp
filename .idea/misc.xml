@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BitbucketMajeraCodeReviewSettings">
+    <option name="popularEmojiShortcuts">
+      <list />
+    </option>
+    <option name="servers">
+      <list>
+        <DiscoveredCodeReviewServer>
+          <option name="accountType" value="OAuth" />
+          <option name="serviceId" value="bitbucket-cloud" />
+          <option name="storedCodeReviewRepositories">
+            <list>
+              <StoredCodeReviewRepository>
+                <option name="name" value="jawlaty" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+              <StoredCodeReviewRepository>
+                <option name="name" value="pits-track-mobile" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+              <StoredCodeReviewRepository>
+                <option name="name" value="pitspersonalflutter" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+              <StoredCodeReviewRepository>
+                <option name="name" value="pitsschoolflutter" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+              <StoredCodeReviewRepository>
+                <option name="name" value="pitssupervflutter" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+              <StoredCodeReviewRepository>
+                <option name="name" value="school_pits_parents_flutter" />
+                <option name="workspace" value="pitstrackapps" />
+              </StoredCodeReviewRepository>
+            </list>
+          </option>
+          <option name="url" value="https://bitbucket.org" />
+        </DiscoveredCodeReviewServer>
+      </list>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
