@@ -39,6 +39,8 @@ fun ProductListScreen(
     onCartClick: () -> Unit
 ) {
     val products by viewModel.products.collectAsState()
+    val cartItems by viewModel.cartItems.collectAsState()
+    val cartCount = cartItems.sumOf { it.quantity }
 
     Scaffold(
         topBar = {
@@ -49,7 +51,7 @@ fun ProductListScreen(
                         onClick = onCartClick,
                         modifier = Modifier.testTag("cart_button")
                     ) {
-                        Text("Cart (${viewModel.getCartItemCount()})")
+                        Text("Cart ($cartCount)")
                     }
                 }
             )
