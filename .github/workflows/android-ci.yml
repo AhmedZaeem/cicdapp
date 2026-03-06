@@ -85,11 +85,11 @@ jobs:
   instrumented-tests:
     name: Instrumented Tests
     needs: code-quality
-    runs-on: macos-13
+    runs-on: macos-latest
 
     strategy:
       matrix:
-        api-level: [29, 30, 33]
+        api-level: [30, 33, 34]
 
     steps:
       - uses: actions/checkout@v4
@@ -108,8 +108,7 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: google_apis
-          arch: x86_64
-          profile: Nexus 6
+          arch: arm64-v8a
           emulator-boot-timeout: 600
           script: ./gradlew connectedDebugAndroidTest
 
