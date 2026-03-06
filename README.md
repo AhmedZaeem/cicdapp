@@ -11,7 +11,7 @@ open in android studio and run, or `./gradlew assembleDebug` from terminal
 4 jobs:
 - code quality (lint + detekt)
 - unit tests + jacoco coverage
-- instrumented tests on emulator (api 28, 30, 33)  
+- instrumented tests on emulator (api 29, 30, 33)  
 - build debug apk
 
 ## issues i ran into
@@ -24,6 +24,8 @@ open in android studio and run, or `./gradlew assembleDebug` from terminal
 - had to set `unitTests.isReturnDefaultValues = true` otherwise some tests crash
 - branch was on main but repo default was master, had to sort that out
 - workflow had JDK 17 but gradle daemon needs JDK 21 (its in gradle-daemon-jvm.properties), changed all jobs to use java 21
+- emualtor tests were completly broken because `macos-latest` is now arm64 (apple silicon M1 runners). the x86_64 emualtor images cant run on arm hosts at all, it just says `FATAL | Avd's CPU Architecture 'x86_64' is not supported by the QEMU2 emulator on aarch64 host` and then sits there timing out for 11 minutes. switched to `macos-13` which is still intel so x86_64 works fine
+- also changed api 28 to 29 because 28 was super slow and kept timing out even on intel, added emulator-boot-timeout of 600 seconds just in case
 
 ## tests
 
