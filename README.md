@@ -23,9 +23,11 @@ open in android studio and run, or `./gradlew assembleDebug` from terminal
 - jacoco needed explicit path to `tmp/kotlin-classes/debug` for kotlin class files, not the usual java path
 - had to set `unitTests.isReturnDefaultValues = true` otherwise some tests crash
 - branch was on main but repo default was master, had to sort that out
+- workflow had JDK 17 but gradle daemon needs JDK 21 (its in gradle-daemon-jvm.properties), changed all jobs to use java 21
 
 ## tests
 
 unit tests: CartViewModel (add, remove, update qty, totals, clear) and ProductRepository (list, lookup, validation)
 
 instrumented: product list shows up, cart button works, add to cart updates count, empty cart msg, cart shows items
+
