@@ -1,40 +1,91 @@
-# cicdapp - Shopping App CI/CD
+# cicdapp — Android CI/CD reference pipeline
 
-android shopping app with CI pipeline using github actions. built with jetpack compose.
+[![CI](https://github.com/AhmedZaeem/cicdapp/actions/workflows/android-ci.yml/badge.svg)](https://github.com/AhmedZaeem/cicdapp/actions/workflows/android-ci.yml)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![JDK](https://img.shields.io/badge/JDK-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org)
 
-## how to run
+A small Jetpack Compose shopping app that exists to carry a **complete four-stage Android
+CI pipeline**. The app is the specimen; the pipeline is the project.
 
-open in android studio and run, or `./gradlew assembleDebug` from terminal
+---
 
-## pipeline
+## The pipeline
 
-4 jobs:
-- code quality (lint + detekt)
-- unit tests + jacoco coverage
-- instrumented tests on emulator (api 30, 33, 34)  
-- build debug apk
+```mermaid
+flowchart LR
+    P([push / PR]) --> Q
+    Q["<b>1 · Code Quality</b><br/>Android Lint<br/>Detekt"] --> U
+    U["<b>2 · Unit Tests</b><br/>JUnit + JaCoCo<br/>→ Codecov"] --> I
+    I["<b>3 · Instrumented</b><br/>emulator API 30 · 33 · 34<br/>KVM accelerated"] --> B
+    B["<b>4 · Build</b><br/>debug APK"] --> A([artifacts])
+```
 
-## issues i ran into
+Every stage uploads its report as a build artifact, so a red build tells you *what* failed
+without opening a log.
 
-- actions/upload-artifact v3 was deprecated, github just straight up fails the whole workflow if you use it. had to upgrade evrything to v4 (checkout, setup-java, upload-artifact, codecov). wasted like 20 min figuring out why it kept failing
-- detekt default rules dont work with compose at all. composable funcitons start with uppercase which breaks FunctionNaming rule. had to change the pattern to `[a-zA-Z][a-zA-Z0-9]*`. also bumped LongMethod threshold to 150 becuase compose functions are long with all the nesting
-- detekt config had a `formatting` section that doesnt exist without the formatting plugin, removed it
-- String.format without Locale.US was flagged by lint, fixed all of them
-- jacoco needed explicit path to `tmp/kotlin-classes/debug` for kotlin class files, not the usual java path
-- had to set `unitTests.isReturnDefaultValues = true` otherwise some tests crash
-- branch was on main but repo default was master, had to sort that out
-- workflow had JDK 17 but gradle daemon needs JDK 21 (its in gradle-daemon-jvm.properties), changed all jobs to use java 21
-- emualtor tests were completly broken because `macos-latest` is now arm64 (apple silicon M1 runners). the x86_64 emualtor images cant run on arm hosts at all, it just says `FATAL | Avd's CPU Architecture 'x86_64' is not supported by the QEMU2 emulator on aarch64 host` and then sits there timing out for 11 minutes. switched to `macos-13` which is still intel so x86_64 works fine
-- also changed api 28 to 29 because 28 was super slow and kept timing out even on intel, added emulator-boot-timeout of 600 seconds just in case
-- then macos-13 got deprecated too lol. github removed it entirely, gives `configuration 'macos-13-us-default' is not supported` error. so had to go back to `macos-latest` but this time use `arm64-v8a` arch instead of x86_64 since all macos runners are apple silicon now. also removed the Nexus 6 profile and dropped api 29 cuz theres no arm64 system image for it, swapped in api 34
-- STILL didnt work. emulator kept saying device not found and timing out. turns out `google_apis` target doesnt have arm64 system images for most api lvls. changed target to `default` which actually has arm64 images. also added force-avd-creation, disable-animations, explicit emulator-options with -no-snapshot-save and swiftshader_indirect gpu, and bumped boot timeout to 900s. switched api 30 to 31 too cuz 30 default arm64 image is flakey
-- ok arm emulators on macos runners are just completly broken, none of the arm64 images boot at all. gave up on macos entirely. moved the whole instrumented-tests job to `ubuntu-latest` with KVM hardware accelaration enabled. back to x86_64 arch and google_apis target which actually work with KVM on linux. had to add a udev rule step to enable /dev/kvm permissions. this finaly boots the emulator properly
-- emulator booted but `addToCartUpdatesCount` test failed with "component is not displayed". the add to cart button wasnt visible on the small emualtor screen so the click did nothing. added `performScrollTo()` before the click and `waitForIdle()` + `waitUntil` after so it actualy waits for the UI to update before checking the cart count
-- test STILL timed out waiting for "Cart (1)" to appear. the actual bug was in ProductListScreen - it was calling `getCartItemCount()` which reads the flow value directly without compose knowing about it. so the text never recomposes when cart changes. had to collect `cartItems` as state and compute the count from that. classic compose reactivity mistake lol
+| Stage | Does | Publishes |
+|---|---|---|
+| Code Quality | Android Lint, Detekt static analysis | `lint-results`, `detekt-results` |
+| Unit Tests | JUnit via Gradle, JaCoCo coverage | `unit-test-results`, Codecov upload |
+| Instrumented Tests | Espresso on emulators, API 30 / 33 / 34 | test results per API level |
+| Build | Assembles the debug APK | `app-debug.apk` |
 
-## tests
+Instrumented tests run across a **matrix of three API levels** with KVM enabled on the
+runner, so hardware acceleration makes emulator startup viable in CI rather than timing out.
 
-unit tests: CartViewModel (add, remove, update qty, totals, clear) and ProductRepository (list, lookup, validation)
+---
 
-instrumented: product list shows up, cart button works, add to cart updates count, empty cart msg, cart shows items
+## The app under test
 
+```
+com/example/cicdapp/
+├── MainActivity.kt
+├── data/
+│   ├── Product.kt              product model
+│   ├── CartItem.kt             line item
+│   └── ProductRepository.kt    in-memory catalog
+├── viewmodel/
+│   └── CartViewModel.kt        cart state, the main unit-test target
+└── ui/
+    ├── screens/                ProductList · ProductDetail · Cart
+    └── theme/                  Color · Type · Theme
+```
+
+Unit tests cover `CartViewModel` and `ProductRepository` — the two pieces holding logic
+worth asserting on. Compose screens are exercised by the instrumented suite.
+
+---
+
+## Running it
+
+```bash
+./gradlew assembleDebug      # build
+./gradlew test               # unit tests
+./gradlew lint detekt        # static analysis
+./gradlew connectedCheck     # instrumented, needs a device or emulator
+```
+
+Or open the project in Android Studio and run it.
+
+---
+
+## What went wrong building this
+
+Kept here because these cost real time and the fixes are not obvious:
+
+**`actions/upload-artifact@v3` is dead.** GitHub doesn't warn — it fails the entire
+workflow. Every action had to move to v4 together: `checkout`, `setup-java`,
+`upload-artifact`, `codecov-action`. About twenty minutes went into working out why a
+green pipeline suddenly wouldn't start.
+
+**Detekt's default rules reject Compose outright.** Composable functions start with a
+capital letter, which trips `FunctionNaming`. The fix is to widen the pattern to
+`[a-zA-Z][a-zA-Z0-9]*`. `LongMethod` also needed raising to 150 — Compose functions are
+genuinely long once nesting is counted, and the default threshold flags idiomatic code.
+
+**Detekt's config had a `formatting` block that doesn't exist** unless the formatting
+plugin is installed. Removed.
+
+**`String.format` without a locale is a lint error.** `Locale.US` had to be passed
+explicitly at every call site.
